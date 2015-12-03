@@ -7,8 +7,6 @@ module TDev.RT {
     {
         private _url: string = undefined;
         public /*protected*/ _path: string = undefined;
-        private _album: SongAlbum = undefined;
-        private _albumName: string = undefined;
         private _artist: string = undefined;
         private _duration: number = undefined;
         public /*protected*/ _genre: string = undefined;
@@ -45,7 +43,6 @@ module TDev.RT {
 
         public init(
             name: string,
-            albumName:string,
             artist: string,
             duration: number,
             genre: string,
@@ -54,20 +51,11 @@ module TDev.RT {
         {
             this._initialized = true;
             this._name = name;
-            this._albumName = albumName;
             this._artist = artist;
-            this._album = SongAlbum.mk(this._albumName, this._artist);
             this._duration = duration;
             this._genre = genre;
             this._rating = rating;
             this._track = track;
-        }
-
-        //? Gets the song album containing the song
-        //@ returns(SongAlbum) cachedAsync
-        public album(r: ResumeCtx) {
-            if (this._initialized) r.resumeVal(this._album);
-            else this.initAsync().done(() => r.resumeVal(this._album));
         }
 
         //? Gets the name of the artist
@@ -164,8 +152,6 @@ module TDev.RT {
             this.initAsync().done(() => {
                 if (this._artist)
                     dc.appendChild(div("item-subtitle", this._artist));
-                if (this._album)
-                    dc.appendChild(div("item-subtle", this._album.name()));
                 d.appendChild(div('item-buttons', HTML.mkRoundButton("svg:play,currentColor", lf("play"), Ticks.songPlay, () => this.play())));
             });
             return d;

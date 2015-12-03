@@ -29,10 +29,6 @@ module TDev.RT.Collections
         //@ [result].writesMutable
         export function create_string_collection() : Collection<string> { return new Collection<string>("string"); }
 
-        //? Creates an empty place collection
-        //@ [result].writesMutable
-        export function create_place_collection(): Collection<Place> { return new Collection<Place>(Place); }
-
         //? Creates an empty link collection
         //@ [result].writesMutable
         export function create_link_collection(): Collection<Link> { return new Collection<Link>(Link); }

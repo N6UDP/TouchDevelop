@@ -453,10 +453,8 @@ module TDev {
                 legalDiv,
                 logoDiv
             ]);
-            if (this.currentRt.compiled.showAd) {
+            if (this.currentRt.compiled.showAd)
                 wall.appendChildren([this.adContainer]);
-                TDev.RT.AdManager.initialize(this.adContainer);
-            }
             if (this.showCopyright) {
                 this.computeCopyrightHeight()
                 this.wallContainer.style.bottom = this.copyrightHeight + "px";

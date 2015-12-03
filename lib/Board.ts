@@ -495,7 +495,6 @@ module TDev { export module RT {
             for (var i = 0; i < this.sprites.length; i++)
             {
                 var s = this.sprites[i];
-                if (!!s._location) continue;
                 this.detectWallCollision(s, dT);
             }
         }

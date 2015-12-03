@@ -303,17 +303,6 @@ module TDev.RT {
             r.resumeVal(true);
         }
 
-        //? Test if the senses→motion is invalid instead.
-        //@ obsolete stub cap(motion)
-        export function has_motion() : boolean
-        { return false; }
-
-        //? Gets the current motion that combines data from the accelerometer, compass and gyroscope if available.
-        //@ stub cap(motion)
-        //@ tandre
-        export function motion() : Motion
-        { return undefined; }
-
         //? Gets the current orientation in degrees if available. (x,y,z) is also called (pitch, roll, yaw) or (alpha, beta, gamma).
         //@ cap(orientation) returns(Vector3) quickAsync
         export function orientation(r : ResumeCtx)
@@ -353,15 +342,6 @@ module TDev.RT {
             //TODO: Cordova not supported
             var battery = (<any>navigator).battery ||  (<any>navigator).webkitBattery || (<any>navigator).mozBattery;
             r.resumeVal(battery ? battery.level : undefined);
-        }
-
-        //? Get the list of Bluetooth widgets paired with your device.
-        //@ async returns(Collection<BluetoothDevice>) cap(bluetooth)
-        export function bluetooth_devices(r:ResumeCtx)
-        {
-            BluetoothDevice.getDevicesAsync().done(v => {
-                r.resumeVal(Collection.fromArray(v, BluetoothDevice));
-            })
         }
 
         //? Indicates if the specified key is pressed.

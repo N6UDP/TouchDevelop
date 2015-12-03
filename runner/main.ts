@@ -87,7 +87,6 @@ module TDev {
         TDev.RT.ApiManager.bingMapsKey = 'AsnQk63tYReqttLHcIL1RUsc_0h0BwCOib6j0Zvk8QjWs4FQjM9JRM9wEKescphX';
         TDev.RT.ArtCache.enabled = false; // disable art caching
         TDev.RT.ApiManager.getKeyAsync = function (url: string): Promise { return Promise.as(undefined); }
-        TDev.RT.AdManager.initialize = (el) => el.style.display = 'none'; // do not show adds
         //TDev.RT.Web.create_request = function (url: string): TDev.RT.WebRequest { return TDev.RT.WebRequest.mk(url, undefined);};
         //TDev.RT.Web.proxy = function (url: string): string { return url; }
         TDev.RT.BingServices.searchAsync = function (

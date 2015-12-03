@@ -381,7 +381,6 @@ module TDev {
         Maps =                  0x00000080,
         Media =                 0x00000100,
         Microphone =            0x00000200,
-        Motion =                0x00000400,
         Contacts =              0x00000800,
         Phone =                 0x00001000,
         Radio =                 0x00002000,
@@ -393,7 +392,6 @@ module TDev {
         MusicAndSounds =        0x00080000,
         Network =               0x00100000,
         Hawaii =                0x00200000,
-        Tiles =                 0x00400000,
         Proximity =             0x00800000,
         Speech =                0x01000000,
         CloudData =             0x02000000,
@@ -419,29 +417,6 @@ module TDev {
            | CloudData
            | CloudServices
            ,
-
-        WindowsPhone =
-            Accelerometer
-            | Calendar
-            | CloudServices
-            | Compass
-            | Contacts
-            | Gyroscope
-            | Location
-            | Maps
-            | Media
-            | Microphone
-            | Motion
-            | Phone
-            | Radio
-            | Orientation
-            | Search
-            | Translation
-            | Tiles
-            | MusicAndSounds
-            | Network
-            | Hawaii
-            ,
 
         iOS =
             Accelerometer

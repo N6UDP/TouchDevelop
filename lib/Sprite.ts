@@ -29,7 +29,6 @@ module TDev.RT {
         private _friction : number = Number.NaN;
         private _angular_speed : number = 0;
         public _height : number = undefined;
-        public _location : Location_ = undefined;
         private _angle : number = 0;
         public _elasticity : number = 1;
         public _scale: number = 1;
@@ -146,15 +145,6 @@ module TDev.RT {
 
         //? Gets the height in pixels
         public height() : number { return this._height; }
-
-        //? Gets the geo location assigned to the sprite
-        //@ readsMutable
-        public location() : Location_ { return this._location; }
-
-        //? Sets the geo location of the sprite
-        //@ cap(motion) flow(SourceGeoLocation)
-        //@ writesMutable
-        public set_location(location:Location_) : void { this._location = location; }
 
         //? Gets the angle of the sprite in degrees
         //@ readsMutable

@@ -34,31 +34,6 @@ module TDev.RT {
 
         }
 
-        //? Chooses a phone number from the contact list
-        //@ cap(contacts) flow(SourceContacts) returns(Link) uiAsync
-        export function choose_phone_number(r: ResumeCtx)
-        {
-            Social.chooseContactAsync().done(c => {
-                var url: string = c ? (c.phone_number() || c.work_phone() || c.home_phone()) : "";
-                if (url)
-                    r.resumeVal(Link.mk(url, LinkKind.phoneNumber));
-                else
-                    r.resumeVal(undefined);
-            });
-        }
-
-        //? Allows the user to save the phone number
-        //@ cap(contacts) flow(SinkContacts)
-        export function save_phone_number(phone_number: string): void {
-            // does nothing
-        }
-
-        //? Obsolete, use social->save contact instead
-        //@ obsolete cap(contacts) flow(SinkContacts) uiAsync
-        export function save_contact(contact: Contact): void {
-            Social.save_contact(contact);
-        }
-
         //? Vibrates the phone for ... seconds (0.02 minimum)
         //@ [seconds].defl(0.1)
         //@ import("cordova", "org.apache.cordova.vibration")
@@ -71,18 +46,6 @@ module TDev.RT {
                 var ms = Math.min(5, Math.max(0.02, seconds)) * 1000.0;
                 (<any>window).navigator.vibrate(ms);
             }
-        }
-
-        //? Chooses an address from the contacts
-        //@ cap(contacts) flow(SourceContacts) returns(Link) uiAsync
-        export function choose_address(r: ResumeCtx) {
-            Social.chooseContactAsync().done((c : Contact) => {
-                var url: string = c ? (c.home_address() || c.work_address()) : "";
-                if (url)
-                    r.resumeVal(Link.mk(url, LinkKind.address));
-                else
-                    r.resumeVal(undefined);
-            });
         }
 
         //? Indicates if the phone is on 'battery' or 'external' power source.
