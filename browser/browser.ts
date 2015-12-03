@@ -60,7 +60,6 @@ module TDev {
         export var touchStart = false;
         export var webRunner = false;
         export var webAppImplicit = false;
-        export var webAppBooster = false;
         export var inCordova = false;
         export var inEditor = false;
         export var builtinTouchToPan = false;
@@ -358,7 +357,6 @@ module TDev {
             if (/Windows NT 5.1/.test(userAgent)) { addCap("win"); addCap("winXP"); }
             if (/Windows NT 6.0/.test(userAgent)) { addCap("win"); addCap("winVista"); }
             if (/Windows NT 6.1/.test(userAgent)) { addCap("win"); addCap("win7"); }
-            if (webAppBooster) { addCap("webAppBooster"); }
             if (isMobileSafari || (isMobile && (browser == BrowserSoftware.ie10 || browser == BrowserSoftware.ie11))) { audioDataUrls = false; }
 
             if (mobileWebkit)
@@ -378,8 +376,6 @@ module TDev {
                 } catch (e) { } // observed to fail in "Private Browsing" of (mobile) Safari
 
             if (isWP8app) {
-                audioDataUrls = true; // through wab
-                screenshots = true; // through wab
                 audioWav = true;
             }
 

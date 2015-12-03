@@ -279,14 +279,6 @@ module TDev {
 
     function initAsync() : Promise
     {
-        if (RT.Wab)
-            return RT.Wab.initAsync().then(() => init2Async());
-        else
-            return init2Async();
-    }
-
-    function init2Async() : Promise
-    {
         Ticker.disable();
         tick(Ticks.mainInit);
 

@@ -517,8 +517,6 @@ module TDev {
                 if (Browser.isWP8app) _cap |= PlatformCapability.Phone;
                 if (Browser.isNodeJS) _cap |= PlatformCapability.Npm;
                 if (Browser.localProxy) _cap |= PlatformCapability.Shell;
-                if ((<any>TDev.RT).Wab)
-                    _cap |= AST.App.fromCapabilityList((<any>TDev.RT).Wab.getSupportedCapabilities());
             }
             return _cap;
         }
@@ -532,8 +530,7 @@ module TDev {
         UsesStackFrame      = 0x00000002,
 
         Web                 = 0x00000010,
-        Wab                 = 0x00000040,
-        WebAll              = ImplementationStatus.Web | ImplementationStatus.Wab
+        WebAll              = ImplementationStatus.Web
     }
 
 
@@ -1503,7 +1500,6 @@ module TDev {
             this._implStatus = this._implStatus & ~ImplementationStatus.WebAll;
             for (var i = 0; i < platforms.length; ++i)
                 switch (platforms[i]) {
-                    case "wab": this._implStatus |= ImplementationStatus.Wab; break;
                     case "": break;
                     default: this.md_oops("unknown platform for stub " + platforms[i])
                 }

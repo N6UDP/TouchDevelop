@@ -4607,13 +4607,8 @@ module TDev
 
             this.setupTopButtons();
 
-            if (Browser.webAppBooster) {
-                api.core.currentPlatform = PlatformCapabilityManager.current(); // based on supported features
-                api.core.currentPlatformImpl = ImplementationStatus.Wab;
-            } else {
-                api.core.currentPlatform = PlatformCapabilityManager.current();
-                api.core.currentPlatformImpl = ImplementationStatus.Web;
-            }
+            api.core.currentPlatform = PlatformCapabilityManager.current();
+            api.core.currentPlatformImpl = ImplementationStatus.Web;
 
             var incoming = false;
             // For both these callbacks, no [Script] is ok because it may be
