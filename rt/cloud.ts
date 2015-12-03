@@ -1,7 +1,6 @@
 ///<reference path='refs.ts'/>
 module TDev.Cloud {
 
-    export var lite = true;
     export var fullTD = true;
     export var litePermissions:StringMap<boolean> = {};
     var microbitGitTag = "v26";
@@ -631,12 +630,7 @@ module TDev.Cloud {
         return appendAccessToken(getServiceUrl() + "/api" + (path == null ? "" : "/" + path));
     }
     export function getScriptTextAsync(id: string) : Promise {
-        return Util.httpGetTextAsync(getPublicApiUrl(encodeURIComponent(id) + "/text?original=true"))
-            .then(text => {
-                if (Cloud.lite || /^.*upperplex/.test(text)) return text
-                else
-                    return Util.httpGetTextAsync(getPublicApiUrl(encodeURIComponent(id) + "/text?original=true&ids=true"))
-            })
+        return Util.httpGetTextAsync(getPublicApiUrl(encodeURIComponent(id) + "/text?original=true"));
     }
     export function getPrivateApiAsync(path: string) : Promise {
         return Util.httpGetJsonAsync(getPrivateApiUrl(path));
@@ -662,16 +656,6 @@ module TDev.Cloud {
         time: number;
         // LITE
         baseSnapshot: string;
-    }
-    export function isVersionNewer(version1: Version, version2: Version): boolean {
-        if (typeof version1 === "object" && typeof version2 === "object")
-        {
-            if (version1.instanceId == version2.instanceId)
-                return version1.version > version2.version || version1.version == version2.version && version1.time > version2.time;
-            else
-                return version1.time > version2.time;
-        }
-        return false;
     }
 
     export interface Header {
@@ -860,7 +844,7 @@ module TDev.Cloud {
         var mergeIds = meta.parentIds
         if (mergeIds)
             url += "&mergeids=" + encodeURIComponent(mergeIds)
-        return Util.httpPostJsonAsync(getPrivateApiUrl(url), Cloud.lite ? meta : "")
+        return Util.httpPostJsonAsync(getPrivateApiUrl(url), meta)
     }
 
     export function isFota() {
@@ -928,22 +912,18 @@ module TDev.Cloud {
                     HTML.showProgressNotification(lf("could not {0}, are you connected to internet?", action));
                 return;
             }
-            else if ((!Cloud.lite && e.status == 503) || (Cloud.lite && e.status == 429)) {
+            else if (e.status == 429) {
                 ModalDialog.info(lf("could not {0}", action), lf("Did you post a lot recently? Please try again later."));
                 return;
             }
             else if (e.status == 403) {
                 Cloud.accessTokenExpired();
-                if (Cloud.lite) {
-                    // in lite, 403 always means missing or expired access token
-                    if (localStorage['everLoggedIn'])
-                        Cloud.isOnlineWithPingAsync()
-                            .done(isOnline => Cloud.showSigninNotification(isOnline));
-                    else
-                        authenticateAsync(action).done()
-                } else {
-                    ModalDialog.info(lf("access denied"), lf("Your access token might have expired. Please return to the main hub and then try again."));
-                }
+                // in lite, 403 always means missing or expired access token
+                if (localStorage['everLoggedIn'])
+                    Cloud.isOnlineWithPingAsync()
+                        .done(isOnline => Cloud.showSigninNotification(isOnline));
+                else
+                    authenticateAsync(action).done()
                 return;
             }
             else if (e.status == 419 || e.status == 402) {

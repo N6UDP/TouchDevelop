@@ -3,7 +3,7 @@ module TDev
 {
     function fetchConfigAsync()
     {
-        if (Cloud.lite && !Cloud.config.liteVersion) {
+        if (!Cloud.config.liteVersion) {
             var storeCfg = r => Object.keys(r).forEach(k => Cloud.config[k] = r[k]);
             var p = Cloud.getPublicApiAsync("clientconfig")
                 .then(r => {
@@ -474,12 +474,10 @@ module TDev
         var mx = /lite=([0-9a-z\.]+)/.exec(document.URL)
 
         if (mx && mx[1] != "0") {
-            Cloud.lite = true;
             Cloud.config.rootUrl = "https://" + mx[1]
         }
 
         if ((<any>window).tdlite) {
-            Cloud.lite = true;
             if ((<any>window).tdlite == "url") {
                 mx = /^(https?:\/\/[^\/]+)/.exec(document.URL);
                 Cloud.config.rootUrl = mx[1]
@@ -490,9 +488,9 @@ module TDev
             if (cfg) Object.keys(cfg).forEach(k => Cloud.config[k] = cfg[k])
         }
 
-        if (Cloud.lite) (<any>window).rootUrl = Cloud.config.rootUrl;
+        (<any>window).rootUrl = Cloud.config.rootUrl;
 
-        Cloud.fullTD = (!Cloud.lite || /touchdevelop.com/.test(Cloud.config.rootUrl));
+        Cloud.fullTD = /touchdevelop.com/.test(Cloud.config.rootUrl);
 
         if (/httplog=1/.test(document.URL)) {
             HttpLog.enabled = true;

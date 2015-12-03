@@ -383,7 +383,7 @@ module TDev{
 
     export function httpPostJsonAsync(url:string, body: any) : Promise {
         return httpRequestAsync(url, "POST", JSON.stringify(body),
-            Cloud.lite ? "application/json;charset=UTF-8" : "text/plain;charset=UTF-8").then((s) => s ? parseJsonWithHack(s) : {});
+            "application/json;charset=UTF-8").then((s) => s ? parseJsonWithHack(s) : {});
     }
 
     export function httpPostTextAsync(url:string, body: string) : Promise {
@@ -397,8 +397,6 @@ module TDev{
     // convert query-string parameters to headers
     function authenticationOverride(client:XMLHttpRequest, url:string, headers:any):string
     {
-        if (!Cloud.lite) return url
-
         var pref = Cloud.getServiceUrl() + "/api"
 
         if (!(url.slice(0, pref.length) == pref && /^[\/\?]/.test(url.slice(pref.length)))) return url
@@ -484,8 +482,7 @@ module TDev{
 
             client = new XMLHttpRequest();
 
-            if (Cloud.lite)
-                url = authenticationOverride(client, url, headers)
+            url = authenticationOverride(client, url, headers)
 
             client.onreadystatechange = ready;
             client.open(method, url);

@@ -476,18 +476,9 @@ module TDev {
             },
             idToUrl: id => "https://vimeo.com/" + id,
             idToHTMLAsync: (id:string) : Promise => {
-                if (Cloud.lite)
-                    return Promise.as(HTML.mkLazyVideoPlayer(
+                return Promise.as(HTML.mkLazyVideoPlayer(
                         Util.fmt("{0}/thumbnail/512/vimeo/{1:uri}", Cloud.getServiceUrl(), id),
                         "https://player.vimeo.com/video/" + id))
-                var url = 'https://vimeo.com/' + id;
-                var p = oembedCache[url] ? Promise.as(oembedCache[url])
-                    : Util.httpGetJsonAsync("https://vimeo.com/api/oembed.json?url=https%3A//vimeo.com/" + id)
-                        .then(oembed => {
-                        oembedCache[url] = oembed;
-                        return oembed;
-                        });
-                return p.then((oe: HTML.OEmbed) => HTML.mkLazyVideoPlayer(oe.thumbnail_url, "https://player.vimeo.com/video/" + id));
             },
         }, {
             id: "instagram",
@@ -572,7 +563,7 @@ module TDev {
         public useSVG = true;
         public useExternalLinks = false;
         public blockExternalLinks:boolean = undefined;
-        public pointerHelp = Cloud.lite;
+        public pointerHelp = true;
         public allowLinks = true;
         public allowImages = true;
         public allowVideos = true;
@@ -1024,7 +1015,7 @@ module TDev {
                         SVG.getVideoPlay(Util.fmt('https://img.youtube.com/vi/{0:q}/hqdefault.jpg', arg))
                         );
                 }
-            } else if (Cloud.lite && macro == "videoptr") {
+            } else if (macro == "videoptr") {
                 if (!this.allowVideos) return "";
                 if (this.blockExternal()) return this.blockLink("")
                 if (!arg)
@@ -1058,7 +1049,7 @@ module TDev {
                         SVG.getVideoPlay(Util.fmt('https://files.microbit.co.uk/clips/{0:uri}/thumb', arg))
                         );
                 }
-            } else if (Cloud.lite && macro == "vimeo") {
+            } else if (macro == "vimeo") {
                 if (!this.allowVideos) return "";
                 if (Cloud.isRestricted())
                     return MdComments.error("vimeo not allowed");

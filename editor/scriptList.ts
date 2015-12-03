@@ -235,19 +235,11 @@
                 return Promise.as();
             }
             this.initBadgeTag();
-            if (!Cloud.lite)
-                TheApiCacheMgr.getAnd("me", (u: JsonUser) => {
-                    (<any>window).userName = u.name;
-                    (<any>window).userScore = u.score;
-                    (<any>window).userId = id;
-                });
             return Cloud.getUserSettingsAsync()
                 .then((settings: Cloud.UserSettings) => {
-                    if (Cloud.lite) {
-                        (<any>window).userName = settings.nickname;
-                        (<any>window).userScore = 0;
-                        (<any>window).userId = Cloud.getUserId();
-                    }
+                    (<any>window).userName = settings.nickname;
+                    (<any>window).userScore = 0;
+                    (<any>window).userId = Cloud.getUserId();
                     Cloud.setPermissions(settings.permissions);
                     EditorSettings.setThemeFromSettings();
                     if (!EditorSettings.currentTheme) EditorSettings.loadEditorMode(settings.editorMode);
@@ -342,7 +334,7 @@
                 localStorage["legalNotice"] == Runtime.legalNotice)
                 return;
 
-            if (Cloud.lite && /ckns_accept=111/.test(document.cookie))
+            if (/ckns_accept=111/.test(document.cookie))
                 return
 
             var d = new ModalDialog();
@@ -363,12 +355,9 @@
                 HTML.mkButton(lf_static(Runtime.legalButton || "agree", true), () => {
                     tick(Ticks.legalNoticeAgree);
                     Runtime.legalNotice = null;
-                    if (Cloud.lite) {
-                        if (!/ckns_policy=.0./.test(document.cookie))
-                            document.cookie = "ckns_accept=111; path=/; expires=" + 
-                                new Date(Date.now()+365*3600*24*1000).toUTCString();
-                    } else
-                        localStorage["legalNotice"] = notice;
+                    if (!/ckns_policy=.0./.test(document.cookie))
+                        document.cookie = "ckns_accept=111; path=/; expires=" +
+                        new Date(Date.now() + 365 * 3600 * 24 * 1000).toUTCString();
                     d.canDismiss = true;
                     d.dismiss();
                 })
@@ -834,7 +823,7 @@
                             }
                         });
                     } else if (/^\d{9,64}$/i.test(terms[0])) {
-                        Cloud.getPrivateApiAsync(Cloud.lite ? "me/code/" + terms[0] : terms[0])
+                        Cloud.getPrivateApiAsync("me/code/" + terms[0])
                             .done((rc : JsonCode) => {
                                 if (rc.verb == "JoinGroup") this.joinGroup(terms[0]);
                             }, e => {});
@@ -843,7 +832,7 @@
                             .done(Host.showBugReport, e => {})
                     }
 
-                    if (Cloud.lite && /^[a-z]{10}$/.test(terms[0])) {
+                    if (/^[a-z]{10}$/.test(terms[0])) {
                         Cloud.getPrivateApiAsync("me/code/" + terms[0])
                             .done((rc : JsonCode) => {
                                 if (rc.verb == "ActivationCode") {
@@ -1239,7 +1228,7 @@
             var btn = HTML.mkButton(lf("join group"), () => {
                 hideBtn();
                 progressBar.start();
-                Cloud.postPrivateApiAsync(Cloud.lite ? "me/code/" + codeid : codeid, {})
+                Cloud.postPrivateApiAsync("me/code/" + codeid, {})
                     .done(resp => {
                         progressBar.stop();
                         m.dismiss();
@@ -1281,11 +1270,11 @@
                 var lastCode : JsonCode = null;
                 if (/\d{9,64}/.test(codeid)) {
                     progressBar.start();
-                    Cloud.getPrivateApiAsync(Cloud.lite ? "me/code/" + codeid : codeid)
+                    Cloud.getPrivateApiAsync("me/code/" + codeid)
                         .then((code: JsonCode) => {
                             lastCode = code;
                             if(code.verb == 'JoinGroup')
-                                return Cloud.getPrivateApiAsync(Cloud.lite ? code.data + "?code=" + codeid : code.data)
+                                return Cloud.getPrivateApiAsync(code.data + "?code=" + codeid)
                             else
                                 return Promise.as(undefined);
                         })
@@ -1470,11 +1459,6 @@
             if (apiPath == "topics" || apiPath == "help") {
                 f(HelpTopic.getAll().map(TopicInfo.mk), null);
                 return Promise.as();
-            }
-
-            if (!Cloud.lite && apiPath == "showcase-scripts") {
-                Showcase.getShowcaseIds(ids => f(ids.map(id => this.getScriptInfoById(id)), null))
-                return Promise.as()
             }
 
             var suspended = <ApiCacheEntry[]>[];
@@ -2636,40 +2620,7 @@
 
         public initMassiveReview()
         {
-            if (Cloud.lite) {
-                this.massiveReviewObject = null
-                return
-            }
-
-            if (this.massiveReviewInitDone) return;
-            this.massiveReviewInitDone = true;
-
-            var e = this.getCore(ApiCacheMgr.massiveReviewUrl)
-            if (e.currentData && (<MassiveJsonList>e.currentData).disableMassiveReview) {
-                this.massiveReviewObject = null
-            } else {
-                e.refresh();
-                e.whenUpdated((lst:MassiveJsonList, opts:DataOptions) => {
-                    if (lst.continuation) {
-                        lst.disableMassiveReview = true;
-                        this.massiveReviewObject = null
-                        return;
-                    }
-
-                    var curr = this.massiveReviewObject;
-                    if (!curr) return; // disabled before
-                    Object.keys(curr).forEach((k) => {
-                        if (!curr[k].stored)
-                            delete curr[k];
-                    });
-
-                    lst.items = lst.items.map((r:JsonReview):any => {
-                        if (!curr[r.publicationid])
-                            curr[r.publicationid] = { id: r.id };
-                        return { id: r.id, publicationid: r.publicationid }
-                    });
-                });
-            }
+            this.massiveReviewObject = null            
         }
 
         public registerAutoUpdate(url:string, elt:HTMLElement, update:(elt:HTMLElement, data:any, options:DataOptions)=>void)
@@ -3062,7 +3013,7 @@
 
         public initWebsocketAsync()
         {
-            if (!ApiCacheMgr.useWebsockets || !Cloud.lite) return Promise.as()
+            if (!ApiCacheMgr.useWebsockets || false) return Promise.as()
 
             var r = new PromiseInv()
 
@@ -3330,20 +3281,12 @@
             return this.mkBoxCore(true);
         }
 
-        public reportAbuse(big:boolean, doubleConfirm = false, onDeleted : () => void = undefined):HTMLElement
-        {
+        public reportAbuse(big: boolean, doubleConfirm = false, onDeleted: () => void = undefined): HTMLElement {
             if (!big || !this.getPublicationId()) return null;
 
-            if (Cloud.lite) {
-                return div("sdReportAbuse", lf("Report/Delete")).withClick(() => {
-                    AbuseReportInfo.abuseOrDelete(this.getPublicationId(), doubleConfirm, undefined, onDeleted)
-                });
-            }
-
-            return div("sdReportAbuse", HTML.mkImg("svg:SmilieSad,#000,clip=100"), lf("report abuse")).withClick(() => {
+            return div("sdReportAbuse", lf("Report/Delete")).withClick(() => {
                 AbuseReportInfo.abuseOrDelete(this.getPublicationId(), doubleConfirm, undefined, onDeleted)
             });
-
         }
 
         // sizes are 1 (smallest), 2, 3
@@ -3656,14 +3599,8 @@
 
         static historicalTextAsync(uid:string, guid:string, it:JsonHistoryItem)
         {
-            if (Cloud.lite)
-                return World.getScriptBlobAsync(it.historyid)
+            return World.getScriptBlobAsync(it.historyid)
                     .then(resp => resp ? resp.script : null)
-
-            var scrid = it.scriptstatus == "published" ? it.scriptid : null
-            return scrid ? ScriptCache.getScriptAsync(scrid) :
-                    Cloud.getPrivateApiAsync(uid + "/installed/" + guid + "/history/" + it.historyid)
-                    .then(resp => resp && resp.bodies && resp.bodies[0] ? resp.bodies[0].script : null);
         }
 
         private boxFor(it:JsonHistoryItem)
@@ -3692,51 +3629,35 @@
                 var scrProm = new PromiseInv();
                 // The script text for the old item in the history.
                 var htext = "";
-                var m:ModalDialog = ScriptProperties.showDiff(scrProm, {
-                    "restore": () => {
-                        var prog = HTML.mkProgressBar()
-                        prog.start()
-                        m.empty()
-                        m.add(prog)
-                        m.addHTML("restoring...")
-                        if (Cloud.lite) {
-                            if (!htext)
-                                return;
-                            var hMeta = JSON.parse(it.meta);
-                            // [it.meta.name] should work in both cases? XXX
-                            currentHeader.name = currentHeader.editor
-                                ? hMeta.name
-                                : AST.Parser.parseScript(htext).getName();
-                            // In case the script is a touchdevelop one, the call to [updateInstalled...]
-                            // below rebuilds the metadata from [htext].  In case the script belongs
-                            // to an external editor, the metadata set below is used.
-                            currentHeader.meta = hMeta;
-                            World.updateInstalledScriptAsync(currentHeader, htext, null)
-                            .then(() => {
-                                prog.stop()
-                                m.dismiss()
-                                this.browser().loadTab(this.parent)
-                            })
-                            .done()
-                        } else {
-                            Util.childNodes(<HTMLElement>box.parentNode).forEach(n => n.setFlag("selected", false));
-                            Cloud.postPrivateApiAsync(Cloud.getUserId() + "/installed/" + guid + "/history/" + it.historyid, {})
-                                .then(resp => {
-                                    box.setFlag("selected", true)
-                                    return World.syncAsync(false)
-                                })
-                                .done(() => {
-                                    prog.stop()
-                                    m.dismiss()
-                                    Util.setTimeout(500, () => TheEditor.historyMgr.reload(HistoryMgr.windowHash()))
-                                }, e => {
-                                    prog.stop()
-                                    m.dismiss()
-                                    Cloud.handlePostingError(e, lf("restoring version"));
-                                })
-                        }
+                var actions = {};
+                actions[lf("restore")] = () => {
+                    var prog = HTML.mkProgressBar()
+                    prog.start()
+                    m.empty()
+                    m.add(prog)
+                    m.addHTML(lf("restoring..."));
+                    if (!htext) {
+                        m.dismiss();
+                        return;
                     }
-                }, false, currentHeader)
+                    var hMeta = JSON.parse(it.meta);
+                    // [it.meta.name] should work in both cases? XXX
+                    currentHeader.name = currentHeader.editor
+                        ? hMeta.name
+                        : AST.Parser.parseScript(htext).getName();
+                    // In case the script is a touchdevelop one, the call to [updateInstalled...]
+                    // below rebuilds the metadata from [htext].  In case the script belongs
+                    // to an external editor, the metadata set below is used.
+                    currentHeader.meta = hMeta;
+                    World.updateInstalledScriptAsync(currentHeader, htext, null)
+                        .then(() => {
+                            prog.stop()
+                            m.dismiss()
+                            this.browser().loadTab(this.parent)
+                        })
+                        .done()
+                };
+                var m: ModalDialog = ScriptProperties.showDiff(scrProm, actions, false, currentHeader)
 
                 Promise.join([HistoryTab.historicalTextAsync(Cloud.getUserId(), this.script().getGuid(), it),
                               s.getScriptTextAsync()]).done(texts => {
@@ -3844,7 +3765,7 @@
                 lf("This tab contains additional information about this script"),
                 ScreenShotTab,
                 ScriptHeartsTab,
-                Cloud.lite ? ChannelListTab : null,
+                ChannelListTab,
                 TagsTab,
                 ArtTab,
                 ConsumersTab,
@@ -3939,14 +3860,14 @@
                 var cont = div(null)
                 var getFor = (id: string, skipComments = false) => {
                     Util.assert(!!id, "missing comment id");
-                    TheApiCacheMgr.getAsync(Cloud.lite ? id : id + "/base", true).done(resp => {
+                    TheApiCacheMgr.getAsync(id, true).done(resp => {
                         versionDepth++;
                         if (!resp) return
                         var d = div("sdLoadingMore", lf("loading comments for /{0}...", resp.id))
                         var loadMore = (cont: string) => {
-                            var dd = div(null, HTML.mkButton(lf("load more"),() => {
+                            var dd = div(null, HTML.mkButton(lf("load more"), () => {
                                 dd.setChildren(lf("loading..."))
-                                TheApiCacheMgr.getAnd(resp.id + "/comments?continuation=" + cont,(lst: JsonList) => {
+                                TheApiCacheMgr.getAnd(resp.id + "/comments?continuation=" + cont, (lst: JsonList) => {
                                     dd.setChildren(lst.items.map(j => this.tabBox(j)))
                                     if (lst.continuation)
                                         dd.appendChild(loadMore(lst.continuation))
@@ -3955,7 +3876,7 @@
                             return dd
                         }
 
-                        TheApiCacheMgr.getAnd(resp.id + "/comments",(lst: JsonList) => {
+                        TheApiCacheMgr.getAnd(resp.id + "/comments", (lst: JsonList) => {
                             d.className = ""
                             if (lst.items.length > 0) {
                                 var ch = lst.items.map(j => this.tabBox(j))
@@ -3973,19 +3894,19 @@
                         hd.className += " sdBaseHeader"
                         if (EditorSettings.widgets().commentHistory) {
                             var btn = div("sdBaseCorner",
-                                div(null, HTML.mkButton(lf("diff curr"),() => this.script().diffToId(resp.id))),
-                                div(null, HTML.mkButton(lf("diff prev"),() => si.diffToBase())))
+                                div(null, HTML.mkButton(lf("diff curr"), () => this.script().diffToId(resp.id))),
+                                div(null, HTML.mkButton(lf("diff prev"), () => si.diffToBase())))
                             hd.appendChild(btn)
                         } else hd.setFlag("slim", true);
                         cont.appendChild(div(null, hd, d))
 
                         if (resp.rootid != resp.id) {
-                            if (versionDepth < 5) getFor(Cloud.lite ? resp.baseid : resp.id)
+                            if (versionDepth < 5) getFor(resp.baseid)
                             else {
-                                var loadMoreVersion = HTML.mkButton(lf("load more"),() => {
+                                var loadMoreVersion = HTML.mkButton(lf("load more"), () => {
                                     loadMoreVersion.removeSelf();
                                     versionDepth = 0;
-                                    getFor(Cloud.lite ? resp.baseid : resp.id);
+                                    getFor(resp.baseid);
                                 });
                                 cont.appendChild(loadMoreVersion);
                             }
@@ -3994,10 +3915,9 @@
                 }
 
 
-                if (Cloud.lite)
-                    // the call to /family is there to prefetch typical parents
-                    TheApiCacheMgr.getAsync(this.getParentId() + "/family?count=10&etagsmode=includeetags", true)
-                        .done((prefetch) => {
+                // the call to /family is there to prefetch typical parents
+                TheApiCacheMgr.getAsync(this.getParentId() + "/family?count=10&etagsmode=includeetags", true)
+                    .done((prefetch) => {
                         if (prefetch)
                             prefetch.items.forEach((e, i) => {
                                 TheApiCacheMgr.store(e.id, e, prefetch.etags && prefetch.etags[i] ? prefetch.etags[i].ETag : null, true);
@@ -4011,8 +3931,6 @@
                         else
                             getFor(this.getParentId(), true)
                     })
-                else
-                    getFor(this.getParentId())
 
                 return cont
             } else {
@@ -6637,10 +6555,6 @@
 
                 if (!this.jsonScript) return;
 
-                if (!Cloud.lite && abuseDiv && this.publicId && this.jsonScript.userid == Cloud.getUserId()) {
-                    updateHideButton();
-                }
-
                 var cont = [];
                 var addNum = (n:number, sym:string) => { cont.push(ScriptInfo.mkNum(n, sym)) }
                 if (big && !isTopic) {
@@ -6791,7 +6705,7 @@
                     new ScriptDetailsTab(this),
                     this.cloudHeader && EditorSettings.widgets().scriptHistoryTab ? new HistoryTab(this) : null,
                     EditorSettings.widgets().scriptInsightsTab ? new InsightsTab(this) : null,
-                    Cloud.lite ? new AbuseReportsTab(this) : null,
+                    new AbuseReportsTab(this),
                 ];
             return r;
         }
@@ -7171,8 +7085,6 @@
             this.docPath = ""
             this.docPathCurrent = false
 
-            if (!Cloud.lite) return Promise.as()
-
             var isDocs = /#docs/i.test(this.getDescription()) || this.isLibrary();
             if (!isDocs) return Promise.as()
 
@@ -7435,7 +7347,7 @@
                                                 return Cloud.postPrivateApiAsync(mid + "/comments", req);
                                             })).done(() => {}, (e) => {}); // swallow error
                                         }
-                                        if (Cloud.lite && baseId) {
+                                        if (baseId) {
                                             var baseMeta = undefined;
                                             Cloud.getPrivateApiAsync(baseId)
                                                 .then((baseJson: JsonScript) => {
@@ -8045,7 +7957,7 @@
         extends ListTab
     {
         constructor(par:BrowserPage, private _noneText : string = lf("no scripts published by this user"), private _name : string = lf("scripts"), private path:string = "scripts") {
-            super(par, "/" + path + (Cloud.lite ? "" : "?applyupdates=" + (/hiddenScripts/.test(document.URL) ? "false" : "true")))
+            super(par, "/" + path)
         }
         public getId() { return this.path; }
         public getName() { return this._name; }
@@ -8399,7 +8311,7 @@
 
                     var cc = []
 
-                    edit(lf("public nickname"), "nickname", Cloud.lite ? 25 : 100)
+                    edit(lf("public nickname"), "nickname", 25)
 
                     if (/,adult,/.test(s.permissions)) {
                         edit(lf("email (private)"), "email");
@@ -8565,8 +8477,8 @@
     export class UserSocialTab extends BrowserMultiTab {
         constructor(par: UserInfo) {
             super(par,
-                "More information about art, score, groups, subscribers, subscriptions and given hearts.",
-                Cloud.lite ? ChannelListTab : null,
+                lf("More information about the user."),
+                ChannelListTab,
                 ArtTab, GroupsTab, SubscribersTab, UserHeartsTab, SubscriptionsTab, ScreenShotTab);
         }
 
@@ -9084,14 +8996,13 @@
 
         public mkTabsCore(): BrowserTab[] {
             var tabs: BrowserTab[] = [
+                new NotificationsTab(this),
                 Cloud.isRestricted() ? null : new CommentsTab(this, () => this.isMine(), (el) => this.updateCommentsHeader(el)),
                 new GroupUsersTab(this),
                 this.collaborations = Cloud.isRestricted() ? null : new CollaborationsTab(this),
                 Cloud.isRestricted() ? null : new GroupUserProgressTab(this),
                 this
             ];
-            if (Cloud.lite)
-                tabs.unshift(new NotificationsTab(this))
             return tabs;
         }
 
@@ -9576,16 +9487,10 @@
         static abuseOrDelete(pubid:string, doubleConfirm = false, abuseid:string = "", onDeleted : () => void = undefined)
         {
             if (Cloud.isOffline()) {
-                Cloud.showModalOnlineInfo("Report/Delete");
+                Cloud.showModalOnlineInfo(lf("Report/Delete"));
                 return;
             }
             
-            if (!Cloud.lite) {
-                window.open(Cloud.getServiceUrl() + "/user/report/" + pubid)
-                return
-            }
-            
-
             Cloud.getPrivateApiAsync(pubid + "/candelete")
             .then((resp:CanDeleteResponse) => {
                 var b = TheHost

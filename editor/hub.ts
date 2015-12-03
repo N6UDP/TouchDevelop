@@ -59,7 +59,7 @@ module TDev.Browser {
                     forConditionDefault: "5",
                     ifConditionDefault: "true",
 
-                    scriptSocialLinks: Cloud.lite,
+                    scriptSocialLinks: true,
                     scriptEmail: true,
                 }
             },
@@ -137,7 +137,7 @@ module TDev.Browser {
                     hubTopAndNew: true,
                     hubScriptUpdates: true,
                     hubUsers: true,
-                    hubChannels: Cloud.lite,
+                    hubChannels: true,
                     notifyAppReloaded: true,
                     startTutorialButton: true,
                     publicationComments: true,
@@ -145,7 +145,7 @@ module TDev.Browser {
                     searchHelp: true,
                     outAssign: true,
 
-                    scriptSocialLinks: Cloud.lite,
+                    scriptSocialLinks: true,
                     scriptPrintScript: true,
                     scriptPrintTopic: true,
                     scriptEmail: true,
@@ -276,13 +276,13 @@ module TDev.Browser {
                     hubScriptUpdates: true,
                     hubUsers: true,
                     hubMyArt: true,
-                    hubChannels: Cloud.lite,
+                    hubChannels: true,
                     publicationComments: true,
                     translateComments: true,
                     searchHelp: true,
                     outAssign: true,
 
-                    scriptSocialLinks: Cloud.lite,
+                    scriptSocialLinks: true,
                     scriptPrintScript: true,
                     scriptPrintTopic: true,
                     scriptEmail: true,
@@ -361,7 +361,7 @@ module TDev.Browser {
                         forConditionDefault: "5",
                         ifConditionDefault: "true",
 
-                        scriptSocialLinks: Cloud.lite,
+                        scriptSocialLinks: true,
                     }
                 }
             },
@@ -678,7 +678,7 @@ module TDev.Browser {
                     );
             }
             
-            if (Cloud.lite && ["upload", "admin", "view-bug", "root-ptr", "gen-code", "internal", "global-list"].some(perm => Cloud.hasPermission(perm))) {
+            if (["upload", "admin", "view-bug", "root-ptr", "gen-code", "internal", "global-list"].some(perm => Cloud.hasPermission(perm))) {
                 m.add(div("wall-dialog-header", lf("internal")));
                 var versionInfo = HTML.mkTextArea()
                 versionInfo.rows = 4;
@@ -2572,7 +2572,7 @@ module TDev.Browser {
         }
 
         static askToEnableNotifications(finish: () => void = undefined) {
-            if (!Cloud.lite &&
+            if (false &&
                 !ModalDialog.currentIsVisible() && // don't show dialog on top of other dialog
                 !TheEditor.stepTutorial && // don't show dialog during tutorials
                 (Runtime.offerNotifications() && World._askToEnableNotifications ||

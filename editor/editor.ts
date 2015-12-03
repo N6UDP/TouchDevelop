@@ -1280,23 +1280,6 @@ module TDev
 
         public syncDone() {
             Ticker.dbg("syncDone");
-            if (Cloud.lite) return
-            ProgressOverlay.lock.done(() => {
-                this.getDepsVersionsAsync().done((ver) => {
-                    if (!Script) return;
-                    if (!Util.jsonEq(ver, this.scriptVersions)) {
-                        var script = this.serializeScript();
-                        if (this.scriptForCloud !== script || this.serializeState() != this.editorStateForCloud) {
-                            // ignore this message while running a tutorial
-                            if (!TheEditor || !TheEditor.stepTutorial)
-                                HTML.showErrorNotification("local edits have overridden changes from the cloud; use version history to recover")
-                            this.saveStateAsync().done();
-                        } else {
-                            this.reload();
-                        }
-                    }
-                })
-            })
         }
 
         public applySizes() {
@@ -2669,7 +2652,7 @@ module TDev
                         }
                         localStorage.removeItem("editorScriptToSaveDirty");
 
-                        if (syncOnFail && Cloud.lite && response.numErrors && !World.syncIsActive()) {
+                        if (syncOnFail && response.numErrors && !World.syncIsActive()) {
                             Util.log("save failed; triggering sync")
                             World.syncAsync().done()
                         }
@@ -4252,7 +4235,7 @@ module TDev
             return this.resetWorldAsync().then(() => {
                 // don't stop progress; keep animation running until we actually navigate away
                 window.onunload = () => { }; // clearing out the onunload event handler; the regular one would write to stuff to storage again
-                if (Cloud.lite && logoutUrl) {
+                if (logoutUrl) {
                     Util.httpPostRealJsonAsync(logoutUrl, { everywhere: everywhere })
                     .then(resp => {
                         if (!url && resp && resp.redirect)
@@ -4585,8 +4568,7 @@ module TDev
             }  else setFlags()
         }
 
-        public init()
-        {
+        public init() {
             this.buildRootFrames();
 
             this.auxRenderer.isAux = true;
@@ -4597,19 +4579,19 @@ module TDev
             if (/monospace=1/.test(document.URL))
                 this.codeInner.className += " monospace"
 
-            this.sideTabs = [<SideTab> this.scriptNav, this.searchTab, this.selector, this.actionProperties, this.scriptProperties, this.inlineActionEditor, this.debuggerNonEditor, this.recordEditor];
-            this.stmtEditors = [<StmtEditor> this.calculator, <StmtEditor> this.debuggerEditor, this.commentEditor, this.debuggerControl, this.selectorEditor]
+            this.sideTabs = [<SideTab>this.scriptNav, this.searchTab, this.selector, this.actionProperties, this.scriptProperties, this.inlineActionEditor, this.debuggerNonEditor, this.recordEditor];
+            this.stmtEditors = [<StmtEditor>this.calculator, <StmtEditor>this.debuggerEditor, this.commentEditor, this.debuggerControl, this.selectorEditor]
             this.stmtEditors.forEach((t) => {
                 t.init(this);
                 var st = t.getSideTab();
                 if (!!st) this.sideTabs.push(st);
             });
-            this.sideTabs.forEach((t:SideTab) => {
+            this.sideTabs.forEach((t: SideTab) => {
                 t.init(this);
             });
 
-            this.codeViews = [<CodeView> this.actionView, this.variableProperties, this.librefProperties, this.recordProperties, this.debuggerCodeView];
-            this.codeViews.forEach((c:CodeView) => {
+            this.codeViews = [<CodeView>this.actionView, this.variableProperties, this.librefProperties, this.recordProperties, this.debuggerCodeView];
+            this.codeViews.forEach((c: CodeView) => {
                 c.init(this);
             });
 
@@ -4621,7 +4603,7 @@ module TDev
             });
 
 
-            elt("scriptEditor").withClick(() => {}) // disable text selection
+            elt("scriptEditor").withClick(() => { }) // disable text selection
 
             this.setupTopButtons();
 
@@ -4633,51 +4615,49 @@ module TDev
                 api.core.currentPlatformImpl = ImplementationStatus.Web;
             }
 
-            if (Cloud.lite) {
-                var incoming = false;
-                // For both these callbacks, no [Script] is ok because it may be
-                // an external editor.
-                World.incomingHeaderAsync = (guid) => {
-                    if (!ScriptEditorWorldInfo || ScriptEditorWorldInfo.guid != guid)
-                        return Promise.as()
-                    if (!incoming) {
-                        incoming = true
-                        ProgressOverlay.show(lf("getting new version of the script"))
-                    }
-                    Util.log("incoming cloud header, saving script");
-                    if (Script)
-                        return this.saveStateAsync()
-                    else
-                        // External editor...
-                        return Promise.as();
-                };
-
-                World.newHeaderCallbackAsync = (hd, state) => {
-                    if (!ScriptEditorWorldInfo || ScriptEditorWorldInfo.guid != hd.guid)
-                        return Promise.as()
-
-                    if (state == "uploaded")
-                        ScriptEditorWorldInfo.baseSnapshot = hd.scriptVersion.baseSnapshot
-
-                    Util.log("new cloud header, state=" + state);
-
-                    if (state == "skippedMerge") {
-                        if (incoming) ProgressOverlay.hide()
-                    } else if (state == "downloaded") {
-                        if (incoming) ProgressOverlay.hide()
-                        if (Script)
-                            this.reload()
-                    } else if (state == "uploaded") {
-                        if (hd.editor)
-                            External.pickUpNewBaseVersion();
-                    } else if (state == "published") {
-                        if (Script)
-                            this.reload()
-                    }
-
+            var incoming = false;
+            // For both these callbacks, no [Script] is ok because it may be
+            // an external editor.
+            World.incomingHeaderAsync = (guid) => {
+                if (!ScriptEditorWorldInfo || ScriptEditorWorldInfo.guid != guid)
                     return Promise.as()
-                };
-            }
+                if (!incoming) {
+                    incoming = true
+                    ProgressOverlay.show(lf("getting new version of the script"))
+                }
+                Util.log("incoming cloud header, saving script");
+                if (Script)
+                    return this.saveStateAsync()
+                else
+                    // External editor...
+                    return Promise.as();
+            };
+
+            World.newHeaderCallbackAsync = (hd, state) => {
+                if (!ScriptEditorWorldInfo || ScriptEditorWorldInfo.guid != hd.guid)
+                    return Promise.as()
+
+                if (state == "uploaded")
+                    ScriptEditorWorldInfo.baseSnapshot = hd.scriptVersion.baseSnapshot
+
+                Util.log("new cloud header, state=" + state);
+
+                if (state == "skippedMerge") {
+                    if (incoming) ProgressOverlay.hide()
+                } else if (state == "downloaded") {
+                    if (incoming) ProgressOverlay.hide()
+                    if (Script)
+                        this.reload()
+                } else if (state == "uploaded") {
+                    if (hd.editor)
+                        External.pickUpNewBaseVersion();
+                } else if (state == "published") {
+                    if (Script)
+                        this.reload()
+                }
+
+                return Promise.as()
+            };
         }
 
         private getEditorState() : EditorState {
@@ -5465,15 +5445,11 @@ module TDev
         {
             tick(Ticks.calcHelp);
             if (HelpTopic.contextTopics.length == 0) {
-                if (Cloud.lite) Util.navigateNewWindow(Cloud.config.helpPath);
-                else Util.setHash("#help")
+                Util.navigateNewWindow(Cloud.config.helpPath);
             } else {
                 var topic = HelpTopic.contextTopics[0];
-                if (Cloud.lite) {
-                    if (topic.json && topic.json.helpPath)
-                        Util.navigateNewWindow("/" + topic.json.helpPath.replace(/^\/+/, ""));
-                }
-                else Util.setHash("#topic:" + HelpTopic.contextTopics[0].id)
+                if (topic.json && topic.json.helpPath)
+                    Util.navigateNewWindow("/" + topic.json.helpPath.replace(/^\/+/, ""));
             }
         }
 
